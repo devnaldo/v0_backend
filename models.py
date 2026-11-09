@@ -91,6 +91,7 @@ class Match(db.Model):
     court_number = db.Column(db.Integer)
     court_order = db.Column(db.Integer)
     status = db.Column(db.String(20), default='pending')
+    outcome_type = db.Column(db.String(20), nullable=False, default='normal', server_default='normal')
     predecessor_1 = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=True)
     predecessor_2 = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=True)
     successor = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=True)
