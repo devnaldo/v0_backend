@@ -43,6 +43,7 @@ CREATE TABLE `match` (
   `court_number` int DEFAULT NULL,
   `court_order` int DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL,
+  `outcome_type` varchar(20) NOT NULL DEFAULT 'normal',
   `predecessor_1` int DEFAULT NULL,
   `predecessor_2` int DEFAULT NULL,
   `successor` int DEFAULT NULL,
@@ -70,7 +71,7 @@ CREATE TABLE `match` (
 
 LOCK TABLES `match` WRITE;
 /*!40000 ALTER TABLE `match` DISABLE KEYS */;
-INSERT INTO `match` VALUES (7,'Round 1 Pool A - Thunder Smash vs Lightning Serve','T001','T002','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL),(8,'Round 1 Pool A - Thunder Smash vs Smashers','T001','T003','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL),(9,'Round 1 Pool A - Thunder Smash vs Destroyers','T001','T004','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL),(10,'Round 1 Pool A - Lightning Serve vs Smashers','T002','T003','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL),(11,'Round 1 Pool A - Lightning Serve vs Destroyers','T002','T004','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL),(12,'Round 1 Pool A - Smashers vs Destroyers','T003','T004','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL);
+INSERT INTO `match` (`id`,`match_name`,`team1_id`,`team2_id`,`round_id`,`pool`,`winner_team_id`,`is_final`,`tournament_id`,`court_number`,`court_order`,`status`,`predecessor_1`,`predecessor_2`,`successor`,`bracket_position`,`round_number`) VALUES (7,'Round 1 Pool A - Thunder Smash vs Lightning Serve','T001','T002','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL),(8,'Round 1 Pool A - Thunder Smash vs Smashers','T001','T003','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL),(9,'Round 1 Pool A - Thunder Smash vs Destroyers','T001','T004','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL),(10,'Round 1 Pool A - Lightning Serve vs Smashers','T002','T003','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL),(11,'Round 1 Pool A - Lightning Serve vs Destroyers','T002','T004','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL),(12,'Round 1 Pool A - Smashers vs Destroyers','T003','T004','1','A',NULL,0,1,NULL,NULL,'pending',NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `match` ENABLE KEYS */;
 UNLOCK TABLES;
 
