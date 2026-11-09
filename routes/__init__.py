@@ -5,6 +5,7 @@ from .tournament import tournament_bp
 from .team import team_bp
 from .match import match_bp
 from .score import score_bp
+from .match import match_outcome  # noqa: F401  (registers /update-match-outcome)
 from .round import round_bp
 from .season import season_bp
 from .super_tournament import super_tournament_bp
