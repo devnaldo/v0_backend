@@ -172,9 +172,10 @@ def show_standings(tournament_id):
         
         # Explicit-result outcomes (e.g. walkover) are stored as 0-0, so this
         # must run before the unplayed-match skip below.
-        is_explicit, explicit_winner = explicit_result(
+        outcome = explicit_result(
             match.outcome_type, match.winner_team_id
         )
+        is_explicit, explicit_winner = outcome.is_explicit, outcome.winner_id
         if is_explicit:
             team_scores[round_id][match.team1_id]['matches'].add(match.match_id)
             team_scores[round_id][match.team2_id]['matches'].add(match.match_id)
@@ -358,9 +359,10 @@ def show_overall_standings(tournament_id):
         
         # Explicit-result outcomes (e.g. walkover) are stored as 0-0, so this
         # must run before the unplayed-match skip below.
-        is_explicit, explicit_winner = explicit_result(
+        outcome = explicit_result(
             match.outcome_type, match.winner_team_id
         )
+        is_explicit, explicit_winner = outcome.is_explicit, outcome.winner_id
         if is_explicit:
             team_scores[match.team1_id]['matches'].add(match.match_id)
             team_scores[match.team2_id]['matches'].add(match.match_id)
@@ -579,9 +581,10 @@ def show_second_place_standings(tournament_id):
         
         # Explicit-result outcomes (e.g. walkover) are stored as 0-0, so this
         # must run before the unplayed-match skip below.
-        is_explicit, explicit_winner = explicit_result(
+        outcome = explicit_result(
             match.outcome_type, match.winner_team_id
         )
+        is_explicit, explicit_winner = outcome.is_explicit, outcome.winner_id
         if is_explicit:
             pool_scores[pool][match.team1_id]['matches'].add(match.match_id)
             pool_scores[pool][match.team2_id]['matches'].add(match.match_id)

@@ -33,9 +33,10 @@ def get_round_standings(tournament_id, round_id):
 
             # Explicit-result outcomes (e.g. walkover) decide the winner from
             # the stored winner_team_id instead of the score comparison.
-            is_explicit, explicit_winner = explicit_result(
+            outcome = explicit_result(
                 match.outcome_type, match.winner_team_id
             )
+            is_explicit, explicit_winner = outcome.is_explicit, outcome.winner_id
             
             for score in match_scores:
                 if score.team_id not in pool_standings[match.pool]:
