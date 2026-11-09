@@ -1,5 +1,6 @@
 from flask import request, jsonify, Response
 from models import Match, Team, Player, Score, Tournament, db, Round
+from match_outcomes import get_outcome
 from sqlalchemy.orm import aliased
 import csv
 import io
@@ -169,7 +170,9 @@ def get_match_fixtures():
                 'match_status': {
                     'winner_team_id': match.winner_team_id,
                     'is_final': match.is_final,
-                    'status': match.status
+                    'status': match.status,
+                    'outcome_type': match.outcome_type,
+                    'outcome_label': get_outcome(match.outcome_type).label
                 },
                 'bracket_info': {
                     'round_number': match.round_number,

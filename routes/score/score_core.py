@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from flask_socketio import emit
 from models import Score, Match, db, Player, Team
+from match_outcomes import get_outcome
 from . import score_bp
 from socket_instance import socketio
 from flask_cors import cross_origin
@@ -303,7 +304,9 @@ def get_match_score():
             },
             'status': match.status,
             'is_final': match.is_final,
-            'winner_team_id': match.winner_team_id
+            'winner_team_id': match.winner_team_id,
+            'outcome_type': match.outcome_type,
+            'outcome_label': get_outcome(match.outcome_type).label
         }
         
         return jsonify(response), 200
