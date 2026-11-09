@@ -172,7 +172,8 @@ def get_match_fixtures():
                     'is_final': match.is_final,
                     'status': match.status,
                     'outcome_type': match.outcome_type,
-                    'outcome_label': get_outcome(match.outcome_type).label
+                    'outcome_label': get_outcome(match.outcome_type).label,
+                    'requires_score': get_outcome(match.outcome_type).requires_score
                 },
                 'bracket_info': {
                     'round_number': match.round_number,

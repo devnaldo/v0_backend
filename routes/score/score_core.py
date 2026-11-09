@@ -306,7 +306,8 @@ def get_match_score():
             'is_final': match.is_final,
             'winner_team_id': match.winner_team_id,
             'outcome_type': match.outcome_type,
-            'outcome_label': get_outcome(match.outcome_type).label
+            'outcome_label': get_outcome(match.outcome_type).label,
+            'requires_score': get_outcome(match.outcome_type).requires_score
         }
         
         return jsonify(response), 200
