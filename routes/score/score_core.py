@@ -42,6 +42,41 @@ def update_successor_match(successor_match_id, current_match_id, winning_team_id
         db.session.rollback()
         raise e 
 
+
+def finalize_match(match, winner_team_id, outcome_type='normal'):
+    """Finalize a match and advance its knockout successor, if any.
+
+    Sets the winner, is_final and outcome_type. It deliberately does NOT set
+    the lifecycle status and does NOT commit: callers own those concerns.
+    """
+    match.is_final = True
+    match.winner_team_id = winner_team_id
+    match.outcome_type = outcome_type
+
+    if match.successor:
+        update_successor_match(match.successor, match.id, match.winner_team_id)
+
+
+def emit_score_update(match_id, team1_id, team1_score, team2_id, team2_score,
+                      is_final, tournament_id):
+    """Build and emit the score_update payload shared by score/outcome routes."""
+    response = {
+        'message': 'Scores updated successfully',
+        'match_id': match_id,
+        'team1_id': team1_id,
+        'team1_score': team1_score,
+        'team2_id': team2_id,
+        'team2_score': team2_score,
+        'is_final': is_final,
+        'tournament_id': tournament_id
+    }
+
+    # Emit WebSocket event with the updated scores
+    socketio.emit('score_update', response, namespace='/scores')
+
+    return response
+
+
 @score_bp.route('/update-score', methods=['POST'])
 def update_score():
     print("\n=== Starting update_score endpoint ===")
@@ -73,6 +108,11 @@ def update_score():
             return jsonify({'error': 'Match not found'}), 404
 
         print(f"Found match with team1_id={match.team1_id}, team2_id={match.team2_id}")
+
+        if match.outcome_type != 'normal':
+            return jsonify({
+                'error': 'Match outcome is not normal; use /update-match-outcome'
+            }), 409
 
         # First, check if scores exist, if not create them
         team1_score_record = Score.query.filter_by(
@@ -112,36 +152,25 @@ def update_score():
 
         # Update match final status and winner if final is True
         if final:
-            match.is_final = True
             # Determine winner
             if team1_score > team2_score:
-                match.winner_team_id = match.team1_id
+                winner_team_id = match.team1_id
             elif team2_score > team1_score:
-                match.winner_team_id = match.team2_id
+                winner_team_id = match.team2_id
             else:
-                match.winner_team_id = None  # Draw
-            print(f"Match finalized with winner_team_id: {match.winner_team_id}")
+                winner_team_id = None  # Draw
+            print(f"Match finalized with winner_team_id: {winner_team_id}")
 
-            if match.successor:
-                update_successor_match(match.successor, match.id, match.winner_team_id)
-        
+            finalize_match(match, winner_team_id, 'normal')
+
         # Commit all changes
         db.session.commit()
         print("Updates committed to database")
 
-        response = {
-            'message': 'Scores updated successfully',
-            'match_id': match_id,
-            'team1_id': match.team1_id,
-            'team1_score': team1_score,
-            'team2_id': match.team2_id,
-            'team2_score': team2_score,
-            'is_final': match.is_final,
-            'tournament_id': tournament_id
-        }
-
-        # Emit WebSocket event with the updated scores
-        socketio.emit('score_update', response, namespace='/scores')
+        response = emit_score_update(
+            match_id, match.team1_id, team1_score,
+            match.team2_id, team2_score, match.is_final, tournament_id
+        )
         
         print(f"\nSending response: {response}")
         return jsonify(response), 200
