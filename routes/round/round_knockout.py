@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from models import db, Tournament, Match, Team, Score, Round
 from sqlalchemy import func
+from match_outcomes import explicit_result
 from . import round_bp
 from flask_cors import cross_origin
 import csv
@@ -52,6 +53,12 @@ def get_pool_standings(tournament_id, round_id):
     for match in matches:
         team1_score = next((s.score for s in scores if s.match_id == match.id and s.team_id == match.team1_id), 0)
         team2_score = next((s.score for s in scores if s.match_id == match.id and s.team_id == match.team2_id), 0)
+
+        # Explicit-result outcomes (e.g. walkover) decide the winner from the
+        # stored winner_team_id instead of the score comparison.
+        is_explicit, explicit_winner = explicit_result(
+            match.outcome_type, match.winner_team_id
+        )
         
         if match.team1_id and match.team2_id:  # Only count completed matches
             pool = match.pool.strip()  # Clean pool name
@@ -60,7 +67,10 @@ def get_pool_standings(tournament_id, round_id):
                 pool_standings[pool][match.team1_id]['matches_played'] += 1
                 pool_standings[pool][match.team1_id]['points_scored'] += team1_score
                 pool_standings[pool][match.team1_id]['points_against'] += team2_score
-                if team1_score > team2_score:
+                if is_explicit:
+                    if explicit_winner == match.team1_id:
+                        pool_standings[pool][match.team1_id]['matches_won'] += 1
+                elif team1_score > team2_score:
                     pool_standings[pool][match.team1_id]['matches_won'] += 1
                 
             # Update team 2 stats
@@ -68,7 +78,10 @@ def get_pool_standings(tournament_id, round_id):
                 pool_standings[pool][match.team2_id]['matches_played'] += 1
                 pool_standings[pool][match.team2_id]['points_scored'] += team2_score
                 pool_standings[pool][match.team2_id]['points_against'] += team1_score
-                if team2_score > team1_score:
+                if is_explicit:
+                    if explicit_winner == match.team2_id:
+                        pool_standings[pool][match.team2_id]['matches_won'] += 1
+                elif team2_score > team1_score:
                     pool_standings[pool][match.team2_id]['matches_won'] += 1
     
     return pool_standings

@@ -1,6 +1,7 @@
 from flask import request, jsonify, current_app, render_template
 from models import Tournament, Team, Player, Match, Score, Round, db, Season
 from sqlalchemy import text, or_, and_, func, case, distinct
+from match_outcomes import explicit_result
 from . import tournament_bp
 
 @tournament_bp.route('/tournaments', methods=['POST'])
@@ -131,6 +132,8 @@ def show_standings(tournament_id):
             m.team2_id,
             m.round_id,
             m.pool,
+            m.outcome_type,
+            m.winner_team_id,
             s1.team_id as team1_id,
             s1.score as team1_score,
             s2.team_id as team2_id,
@@ -166,6 +169,20 @@ def show_standings(tournament_id):
                     'matches': set(),
                     'matches_won': 0
                 }
+        
+        # Explicit-result outcomes (e.g. walkover) are stored as 0-0, so this
+        # must run before the unplayed-match skip below.
+        is_explicit, explicit_winner = explicit_result(
+            match.outcome_type, match.winner_team_id
+        )
+        if is_explicit:
+            team_scores[round_id][match.team1_id]['matches'].add(match.match_id)
+            team_scores[round_id][match.team2_id]['matches'].add(match.match_id)
+            if explicit_winner == match.team1_id:
+                team_scores[round_id][match.team1_id]['matches_won'] += 1
+            elif explicit_winner == match.team2_id:
+                team_scores[round_id][match.team2_id]['matches_won'] += 1
+            continue
         
         print(f"\nProcessing match {match.match_id}:")
         print(f"Team1 ({match.team1_id}): {match.team1_score}")
@@ -305,6 +322,8 @@ def show_overall_standings(tournament_id):
             m.id as match_id,
             m.team1_id,
             m.team2_id,
+            m.outcome_type,
+            m.winner_team_id,
             s1.team_id as team1_id,
             s1.score as team1_score,
             s2.team_id as team2_id,
@@ -336,6 +355,20 @@ def show_overall_standings(tournament_id):
                     'matches': set(),
                     'matches_won': 0
                 }
+        
+        # Explicit-result outcomes (e.g. walkover) are stored as 0-0, so this
+        # must run before the unplayed-match skip below.
+        is_explicit, explicit_winner = explicit_result(
+            match.outcome_type, match.winner_team_id
+        )
+        if is_explicit:
+            team_scores[match.team1_id]['matches'].add(match.match_id)
+            team_scores[match.team2_id]['matches'].add(match.match_id)
+            if explicit_winner == match.team1_id:
+                team_scores[match.team1_id]['matches_won'] += 1
+            elif explicit_winner == match.team2_id:
+                team_scores[match.team2_id]['matches_won'] += 1
+            continue
         
         print(f"\nProcessing match {match.match_id}:")
         print(f"Team1 ({match.team1_id}): {match.team1_score}")
@@ -504,6 +537,8 @@ def show_second_place_standings(tournament_id):
             m.team2_id,
             m.round_id,
             m.pool,
+            m.outcome_type,
+            m.winner_team_id,
             s1.team_id as team1_id,
             s1.score as team1_score,
             s2.team_id as team2_id,
@@ -541,6 +576,20 @@ def show_second_place_standings(tournament_id):
                     'matches': set(),
                     'matches_won': 0
                 }
+        
+        # Explicit-result outcomes (e.g. walkover) are stored as 0-0, so this
+        # must run before the unplayed-match skip below.
+        is_explicit, explicit_winner = explicit_result(
+            match.outcome_type, match.winner_team_id
+        )
+        if is_explicit:
+            pool_scores[pool][match.team1_id]['matches'].add(match.match_id)
+            pool_scores[pool][match.team2_id]['matches'].add(match.match_id)
+            if explicit_winner == match.team1_id:
+                pool_scores[pool][match.team1_id]['matches_won'] += 1
+            elif explicit_winner == match.team2_id:
+                pool_scores[pool][match.team2_id]['matches_won'] += 1
+            continue
         
         print(f"\nProcessing match {match.match_id}:")
         print(f"Team1 ({match.team1_id}): {match.team1_score}")

@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from models import Tournament, Team, Player, Match, Score, Round, db
 from routes.tournament.tournament_core import show_standings
+from match_outcomes import explicit_result
 from . import round_bp
 
 def get_round_standings(tournament_id, round_id):
@@ -29,6 +30,12 @@ def get_round_standings(tournament_id, round_id):
 
             # Get scores for this match
             match_scores = [s for s in scores if s.match_id == match.id]
+
+            # Explicit-result outcomes (e.g. walkover) decide the winner from
+            # the stored winner_team_id instead of the score comparison.
+            is_explicit, explicit_winner = explicit_result(
+                match.outcome_type, match.winner_team_id
+            )
             
             for score in match_scores:
                 if score.team_id not in pool_standings[match.pool]:
@@ -55,7 +62,10 @@ def get_round_standings(tournament_id, round_id):
                 )
                 if opponent_score:
                     team_stats['points_lost'] += opponent_score.score
-                    if score.score > opponent_score.score:
+                    if is_explicit:
+                        if explicit_winner == score.team_id:
+                            team_stats['matches_won'] += 1
+                    elif score.score > opponent_score.score:
                         team_stats['matches_won'] += 1
 
                 team_stats['total_scores'] = team_stats['matches_won']
